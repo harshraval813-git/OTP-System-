@@ -17,11 +17,12 @@ def get_db_connection():
         port=os.getenv('DB_PORT')
     )
 
-# Yeh function apne aap table banayega
+# Yeh function table ko 'defaultdb' ke andar create karega
 def init_db():
     try:
         db = get_db_connection()
         cursor = db.cursor()
+        # Table banane ki query
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS otp_logs (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,13 +35,13 @@ def init_db():
         db.commit()
         cursor.close()
         db.close()
-        print("Table initialization successful!")
+        print("TABLE CHECK: Table 'otp_logs' is ready!")
     except Exception as e:
-        print(f"Database Init Error: {e}")
+        print(f"DATABASE ERROR during init: {e}")
 
 @app.route('/')
 def home():
-    return "OTP Backend is Running with Cloud DB!"
+    return "OTP Backend is Live and Connected!"
 
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
@@ -60,6 +61,6 @@ def send_otp():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    init_db() # App start hote hi table check karega
+    init_db() # App chalte hi sabse pehle table banayega
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
