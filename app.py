@@ -8,19 +8,39 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 CORS(app)
 
-# Database Setup
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'otp_project'),
-        port=os.getenv('DB_PORT', '3306')
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME'),
+        port=os.getenv('DB_PORT')
     )
+
+# Yeh function apne aap table banayega
+def init_db():
+    try:
+        db = get_db_connection()
+        cursor = db.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS otp_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) NOT NULL,
+                otp VARCHAR(6) NOT NULL,
+                expiry_time DATETIME NOT NULL,
+                is_verified BOOLEAN DEFAULT FALSE
+            )
+        """)
+        db.commit()
+        cursor.close()
+        db.close()
+        print("Table initialization successful!")
+    except Exception as e:
+        print(f"Database Init Error: {e}")
 
 @app.route('/')
 def home():
-    return "OTP Backend is Running!"
+    return "OTP Backend is Running with Cloud DB!"
 
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
@@ -40,6 +60,6 @@ def send_otp():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Yeh line Render ka port error fix karegi
+    init_db() # App start hote hi table check karega
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
