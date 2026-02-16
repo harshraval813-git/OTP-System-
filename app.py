@@ -9,20 +9,27 @@ app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
+    # .strip() ka use kiya hai taaki extra spaces delete ho jayein
+    host = os.getenv('DB_HOST', '').strip()
+    port = os.getenv('DB_PORT', '14706').strip()
+    user = os.getenv('DB_USER', '').strip()
+    password = os.getenv('DB_PASSWORD', '').strip()
+    database = os.getenv('DB_NAME', '').strip()
+    
+    print(f"DEBUG: Connecting to Host: '{host}' on Port: {port}")
+    
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        database=os.getenv('DB_NAME'),
-        port=os.getenv('DB_PORT')
+        host=host,
+        user=user,
+        password=password,
+        database=database,
+        port=int(port)
     )
 
-# Yeh function table ko 'defaultdb' ke andar create karega
 def init_db():
     try:
         db = get_db_connection()
         cursor = db.cursor()
-        # Table banane ki query
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS otp_logs (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +48,7 @@ def init_db():
 
 @app.route('/')
 def home():
-    return "OTP Backend is Live and Connected!"
+    return "OTP Backend is Running with Cloud DB!"
 
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
@@ -61,6 +68,6 @@ def send_otp():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    init_db() # App chalte hi sabse pehle table banayega
+    init_db()
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
